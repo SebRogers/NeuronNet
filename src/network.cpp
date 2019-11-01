@@ -1,5 +1,6 @@
 #include "network.h"
 #include "random.h"
+#include <map>
 
 void Network::resize(const size_t &n, double inhib) {
     size_t old = size();
@@ -128,3 +129,69 @@ void Network::print_traj(const int time, const std::map<std::string, size_t> &_n
             }
     (*_out) << std::endl;
 }
+
+
+std::pair<size_t, double> Network::degree(const size_t& n) const{
+	double sum_intens;
+	size_t nbr_connec(neighbors(n).size());
+	
+	for( auto i : neighbors(n)){
+		sum_intens += i.second;
+		}
+		
+	return std::make_pair(nbr_connec, sum_intens);
+}
+
+//trouve les voisons du neuron en paramètre
+std::vector<std::pair<size_t, double> > Network::neighbors(const size_t& nrn) const{
+	std::vector<std::pair<size_t, double> > vec;
+	std::map<std::pair<size_t, size_t>,double >::const_iterator it;	//const_iterator car la méthode est const donc on peut pas autoriser qqch qui peut modifier
+
+	for ( it = links.lower_bound({nrn,0}); it !=links.cend() and nrn == it->first.first; ++it){
+		vec.push_back(std::make_pair(it->first.second, it->second));
+	}
+	return vec;
+}
+
+
+std::set<size_t> Network::step(const std::vector<double>& vec){
+	std::set<size_t> set;
+	for (size_t m(0); m<neurons.size(); ++m){ 
+		if (neurons[m].firing()) { 
+			neurons[m].reset();	//il faut reset les firing neurons avant tout.
+			set.insert(m);
+		}		
+	}
+
+	for ( size_t i(0) ; i< neurons.size(); ++i) {
+		double excit_sum(0.0);
+		double inhib_sum(0.0);
+		
+		double w(1);
+		if (neurons[i].is_inhibitory()) { w = 0.4;}
+		
+		
+		std::vector<std::pair<size_t, double>> sending_neurons = neighbors(i); 
+		
+		for (size_t j(0) ; j< sending_neurons.size(); ++j) {
+			size_t n = sending_neurons[j].first;	//trouve le jème voisin du neuron i et donne son indice à n
+			
+			if (set.count(n) != 0){
+				if(neurons[n].is_inhibitory()) {
+					inhib_sum += neighbors(i)[j].second;
+				}
+				else { 
+					excit_sum += neighbors(i)[j].second;
+				}
+			} 
+		}
+		
+		double intensity = w * vec[i] + 0.5*excit_sum + inhib_sum; 
+		neurons[i].input(intensity);      
+		neurons[i].step();
+	}
+	
+	return set;
+}
+
+

@@ -2,7 +2,7 @@
 #include "neuron.h"
 
 /*! \class Network
-  A neuron network is a \ref neurons "set" of neurons and a \ref links "set" of directional links between them.
+  A neuron network is a \ref neurons "set" of neurons and a \ref links "set" of directional links between them. 
 
   Neurons are objects of class Neuron (they are identified by their index in the vector \ref neurons).
   A link is an ordered pair of indices in \ref neurons with an intensity value, 
@@ -25,7 +25,7 @@
 
  */
 
-typedef std::map<std::pair<size_t, size_t>, double> linkmap;
+typedef std::map<std::pair<size_t, size_t>, double> linkmap; //paramètres : le receveur, l'envoyeur, l'intensité
 
 class Network {
 
@@ -83,7 +83,7 @@ public:
     const Neuron& neuron(const size_t n) const {return neurons.at(n);}
 /*! 
   Finds the list of neurons with incoming connections to \p n.
-  \param n : the index of the receiving neuron.
+  \param n : the findex of the receiving neuron.
   \return a vector of pairs {neuron index, link intensity}.
  */
     std::vector<std::pair<size_t, double> > neighbors(const size_t&) const;
